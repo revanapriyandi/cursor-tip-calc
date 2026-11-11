@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Split the check</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Newsreader:opsz,wght@6..72,500;6..72,650&display=swap" rel="stylesheet">
+  <script>
+    (function () {
+      var key = "tip-calc-theme";
+      var saved = null;
+      try { saved = localStorage.getItem(key); } catch (e) {}
+      var theme = saved === "dark" || saved === "light"
+        ? saved
+        : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --table: #c9c3b6;
+      --paper: #f4f7ef;
+      --ink: #1c2418;
+      --muted: #4d5c48;
+      --rule: #9aab90;
+      --field: #fffcf6;
+      --stamp: #0f6e56;
+      --stamp-ink: #f4f7ef;
+      --focus: #0f6e56;
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --table: #101412;
+      --paper: #1c2620;
+      --ink: #e7f0e2;
+      --muted: #b7c6b2;
+      --rule: #3e5246;
+      --field: #141c18;
+      --stamp: #8fcbb0;
+      --stamp-ink: #122018;
+      --focus: #8fcbb0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--table);
+      color: var(--ink);
+      font-family: "Atkinson Hyperlegible", "Segoe UI", sans-serif;
+      font-size: 1.0625rem;
+      line-height: 1.45;
+    }
+
+    .wrap {
+      width: min(26rem, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 1.25rem 0 3rem;
+    }
+
+    .top {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1.25rem;
+    }
+
+    h1 {
+      margin: 0 0 0.35rem;
+      font-family: Newsreader, Georgia, serif;
+      font-weight: 650;
+      font-size: 2.35rem;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+    }
+
+    .lede {
+      margin: 0 0 1.25rem;
+      color: var(--muted);
+      max-width: 28ch;
+    }
+
+    .check {
+      background: var(--paper);
+      color: var(--ink);
+      padding: 1.35rem 1.25rem 1.4rem;
+      border-radius: 2px;
+      box-shadow: 0 10px 24px rgba(28, 36, 24, 0.12);
+      background-image: radial-gradient(circle, var(--rule) 1.1px, transparent 1.2px);
+      background-size: 12px 8px;
+      background-repeat: repeat-x;
+      background-position: center 10px;
+    }
+
+    html[data-theme="dark"] .check {
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    form { margin-top: 0.85rem; }
+
+    .field { margin: 0 0 1.1rem; }
+
+    label, .group-label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 700;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      appearance: textfield;
+      background: var(--field);
+      color: var(--ink);
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      font: inherit;
+      padding: 0.7rem 0.75rem;
+      min-height: 2.75rem;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      appearance: none;
+      margin: 0;
+    }
+
+    .bill-row, .custom-row {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .bill-row input { font-variant-numeric: tabular-nums; }
+
+    .affix {
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+    }
+
+    .tips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .tips button {
+      flex: 1 1 4.5rem;
+      min-height: 2.75rem;
+      font: inherit;
+      font-weight: 700;
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      cursor: pointer;
+    }
+
+    .tips button[aria-pressed="true"] {
+      background: var(--stamp);
+      border-color: var(--stamp);
+      color: var(--stamp-ink);
+    }
+
+    .custom-row { margin-top: 0.45rem; }
+    .custom-row input { max-width: 7rem; }
+
+    #theme {
+      min-height: 2.75rem;
+      padding: 0.4rem 0.7rem;
+      font: inherit;
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      cursor: pointer;
+    }
+
+    #theme[aria-checked="true"] {
+      background: var(--stamp);
+      border-color: var(--stamp);
+      color: var(--stamp-ink);
+    }
+
+    button:hover { filter: brightness(0.97); }
+
+    :focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .error {
+      min-height: 1.3rem;
+      margin: 0.35rem 0 0;
+      color: #8d2b1f;
+      font-size: 0.95rem;
+    }
+
+    html[data-theme="dark"] .error { color: #f0b2a6; }
+
+    .tally {
+      margin-top: 0.4rem;
+      padding-top: 0.85rem;
+      border-top: 1px dashed var(--rule);
+    }
+
+    .line {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin: 0.2rem 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .line span:last-child { font-weight: 700; }
+
+    .each {
+      margin: 1rem 0 0;
+    }
+
+    .each .who {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .each strong {
+      display: block;
+      margin-top: 0.1rem;
+      font-family: Newsreader, Georgia, serif;
+      font-weight: 650;
+      font-size: 3rem;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      color: var(--stamp);
+    }
+
+    .note {
+      min-height: 1.3rem;
+      margin: 0.55rem 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <button type="button" id="theme" role="switch" aria-checked="false">Dark mode</button>
+    </div>
+    <main>
+      <h1>Split the check</h1>
+      <p class="lede">Bill, tip, and what each person owes.</p>
+      <section class="check" aria-label="Guest check">
+        <form id="calc" novalidate>
+          <div class="field">
+            <label for="bill">Bill</label>
+            <div class="bill-row">
+              <span class="affix" aria-hidden="true">$</span>
+              <input id="bill" name="bill" type="number" inputmode="decimal" min="0" step="0.01" value="0" placeholder="0.00">
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="group-label" id="tip-label">Tip</div>
+            <div class="tips" role="group" aria-labelledby="tip-label">
+              <button type="button" data-tip="10" aria-pressed="false">10%</button>
+              <button type="button" data-tip="15" aria-pressed="true">15%</button>
+              <button type="button" data-tip="20" aria-pressed="false">20%</button>
+            </div>
+            <div class="custom-row">
+              <label for="custom">Custom</label>
+              <input id="custom" name="custom" type="number" inputmode="decimal" min="0" step="0.1" value="15" aria-describedby="tip-error">
+              <span class="affix" aria-hidden="true">%</span>
+            </div>
+            <p class="error" id="tip-error" role="alert"></p>
+          </div>
+
+          <div class="field">
+            <label for="people">People</label>
+            <input id="people" name="people" type="number" inputmode="numeric" min="1" step="1" value="1" aria-describedby="people-error">
+            <p class="error" id="people-error" role="alert"></p>
+          </div>
+
+          <div class="tally" aria-live="polite">
+            <p class="line"><span>Tip</span><span id="tip-out">$0.00</span></p>
+            <p class="line"><span>Total</span><span id="total-out">$0.00</span></p>
+            <p class="each">
+              <span class="who" id="each-label">Each person</span>
+              <strong id="each-out">$0.00</strong>
+            </p>
+            <p class="note" id="note"></p>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+  <script>
+    (function () {
+      var THEME_KEY = "tip-calc-theme";
+      var billEl = document.getElementById("bill");
+      var customEl = document.getElementById("custom");
+      var peopleEl = document.getElementById("people");
+      var tipButtons = Array.prototype.slice.call(document.querySelectorAll("[data-tip]"));
+      var tipOut = document.getElementById("tip-out");
+      var totalOut = document.getElementById("total-out");
+      var eachOut = document.getElementById("each-out");
+      var noteEl = document.getElementById("note");
+      var tipError = document.getElementById("tip-error");
+      var peopleError = document.getElementById("people-error");
+      var themeBtn = document.getElementById("theme");
+      var money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+
+      function readTheme() {
+        return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+      }
+
+      function applyTheme(theme) {
+        document.documentElement.dataset.theme = theme;
+        themeBtn.setAttribute("aria-checked", theme === "dark" ? "true" : "false");
+      }
+
+      function moneyFromCents(cents) {
+        return money.format(cents / 100);
+      }
+
+      function syncPressed() {
+        var pct = Number(customEl.value);
+        tipButtons.forEach(function (btn) {
+          var match = customEl.value !== "" && Number(btn.getAttribute("data-tip")) === pct;
+          btn.setAttribute("aria-pressed", match ? "true" : "false");
+        });
+      }
+
+      function calculate() {
+        var bill = Number(billEl.value);
+        var pct = Number(customEl.value);
+        var people = Number(peopleEl.value);
+        var billOk = billEl.value !== "" && Number.isFinite(bill) && bill >= 0;
+        var pctOk = customEl.value !== "" && Number.isFinite(pct) && pct >= 0;
+        var peopleOk = peopleEl.value !== "" && Number.isInteger(people) && people >= 1;
+
+        tipError.textContent = pctOk ? "" : "Enter a tip of 0% or more.";
+        peopleError.textContent = peopleOk ? "" : "Enter at least 1 person.";
+
+        if (!billOk || !pctOk || !peopleOk) {
+          tipOut.textContent = "—";
+          totalOut.textContent = "—";
+          eachOut.textContent = "—";
+          noteEl.textContent = "";
+          return;
+        }
+
+        var billCents = Math.round(bill * 100);
+        var tipCents = Math.round(billCents * pct / 100);
+        var totalCents = billCents + tipCents;
+        var eachCents = Math.round(totalCents / people);
+        var remainder = totalCents - eachCents * people;
+
+        tipOut.textContent = moneyFromCents(tipCents);
+        totalOut.textContent = moneyFromCents(totalCents);
+        eachOut.textContent = moneyFromCents(eachCents);
+        noteEl.textContent = remainder === 0
+          ? ""
+          : "Rounded to the nearest cent, so the shares differ by a few cents.";
+      }
+
+      billEl.addEventListener("input", calculate);
+      peopleEl.addEventListener("input", calculate);
+      customEl.addEventListener("input", function () {
+        syncPressed();
+        calculate();
+      });
+
+      tipButtons.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          customEl.value = btn.getAttribute("data-tip");
+          syncPressed();
+          calculate();
+        });
+      });
+
+      document.getElementById("calc").addEventListener("submit", function (event) {
+        event.preventDefault();
+        calculate();
+      });
+
+      themeBtn.addEventListener("click", function () {
+        var next = readTheme() === "dark" ? "light" : "dark";
+        applyTheme(next);
+        try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+      });
+
+      applyTheme(readTheme());
+      syncPressed();
+      calculate();
+    })();
+  </script>
+</body>
+</html>
